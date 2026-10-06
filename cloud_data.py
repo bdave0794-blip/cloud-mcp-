@@ -1,13 +1,14 @@
+"""Database + file storage helpers (Supabase only)."""
 import os
 from functools import lru_cache
 
-import boto3
-from botocore.exceptions import BotoCoreError, ClientError
 from supabase import Client, create_client
+
+AUDIO_BUCKET = os.environ.get("AUDIO_BUCKET", "audio")
 
 
 class ConfigError(RuntimeError):
-    """Raised when a required environment variable is missing."""
+    pass
 
 
 def _require(name: str) -> str:
@@ -21,34 +22,15 @@ def _require(name: str) -> str:
 def get_supabase() -> Client:
     url = _require("SUPABASE_URL")
     if "supabase.com/dashboard" in url:
-        raise ConfigError(
-            "SUPABASE_URL is the dashboard link. Use https://<project-ref>.supabase.co"
-        )
+        raise ConfigError("SUPABASE_URL must be https://<project-ref>.supabase.co")
     return create_client(url, _require("SUPABASE_KEY"))
 
 
-@lru_cache(maxsize=1)
-def get_s3_client():
-    return boto3.client(
-        "s3",
-        endpoint_url=_require("R2_ENDPOINT_URL"),
-        aws_access_key_id=_require("R2_ACCESS_KEY"),
-        aws_secret_access_key=_require("R2_SECRET_KEY"),
-        region_name="auto",
-    )
-
-
 def upload_bytes(data: bytes, key: str, content_type: str = "audio/mpeg") -> str:
-    """Upload bytes to R2 and return the public URL."""
-    bucket = os.environ.get("R2_BUCKET_NAME", "yt-automation-assets")
-    public_domain = _require("R2_PUBLIC_DOMAIN").rstrip("/")
-    try:
-        get_s3_client().put_object(
-            Bucket=bucket, Key=key, Body=data, ContentType=content_type
-        )
-    except (BotoCoreError, ClientError) as e:
-        raise RuntimeError(f"R2 upload failed: {e}") from e
-    return f"{public_domain}/{key}"
+    """Upload to the public Supabase Storage bucket and return its public URL."""
+    storage = get_supabase().storage.from_(AUDIO_BUCKET)
+    storage.upload(key, data, {"content-type": content_type, "upsert": "true"})
+    return storage.get_public_url(key)
 
 
 def create_job(topic: str, script_text: str | None = None) -> str:
