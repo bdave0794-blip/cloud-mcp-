@@ -7,14 +7,16 @@ import requests
 
 SUPABASE_URL = os.environ["SUPABASE_URL"].strip().rstrip("/")
 KEY = os.environ["SUPABASE_SERVICE_KEY"].strip()
-if SUPABASE_URL.startswith("eyJ") or not KEY.startswith("eyJ"):
+if SUPABASE_URL.startswith(("eyJ", "sb_")) or not KEY.startswith(("eyJ", "sb_")):
     sys.exit("SUPABASE_URL and SUPABASE_SERVICE_KEY look wrong or swapped; re-save both secrets")
 if not SUPABASE_URL.startswith("http"):
     SUPABASE_URL = "https://" + SUPABASE_URL
 BUCKET = os.environ.get("VIDEO_BUCKET", "video")
 W = int(os.environ.get("VIDEO_W", "1920"))
 H = int(os.environ.get("VIDEO_H", "1080"))
-HDR = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+HDR = {"apikey": KEY}
+if KEY.startswith("eyJ"):
+    HDR["Authorization"] = f"Bearer {KEY}"
 
 WORDS_PER_CAPTION = 7
 
