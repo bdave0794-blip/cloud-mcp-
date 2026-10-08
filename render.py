@@ -149,4 +149,4 @@ def main(job_id):
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit("usage: python render.py <job_id>")
-    main(sys.argv[1])
+    main(sys.argv[1].strip())
