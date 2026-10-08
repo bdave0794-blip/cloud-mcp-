@@ -2,3 +2,4 @@ fastmcp>=2.10
 httpx>=0.27
 boto3>=1.34
 supabase>=2.3
+httpx

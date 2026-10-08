@@ -96,6 +96,9 @@ import video
 video.register(mcp)
 
 
+if __name__ == "__main__":
+    mcp.run(transport="http", host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 import os
 import httpx
 
@@ -118,7 +121,3 @@ def render_video(job_id: str) -> str:
     if r.status_code != 204:
         return f"Failed to start render: {r.status_code} {r.text}"
     return f"Render started for job {job_id}. Check status in a minute or two."
-
-
-if __name__ == "__main__":
-    mcp.run(transport="http", host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
