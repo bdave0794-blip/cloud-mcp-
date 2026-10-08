@@ -92,5 +92,9 @@ async def check_job_status(job_id: str) -> dict:
         return {"error": str(e)}
 
 
+import video
+video.register(mcp)
+
+
 if __name__ == "__main__":
     mcp.run(transport="http", host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
