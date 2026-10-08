@@ -93,11 +93,29 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     for c in chunks:
         dur = duration * len(c) / total_chars
         lines.append(
-            f"Dialogue: 0,{ass_time(t)},{ass_time(t + dur)},Default,,0,0,0,,{c}"
+            f"Dialogue: 0,{ass_time(t)},{ass_time(t + dur)},Default,,0,0,0,,{{\\fad(150,100)\\fscx85\\fscy85\\t(0,200,\\fscx100\\fscy100)}}{c}"
         )
         t += dur
     with open(path, "w", encoding="utf-8") as f:
         f.write(header + "\n".join(lines) + "\n")
+
+
+def run_ffmpeg(tmp, duration):
+    d = f"{duration + 0.5:.3f}"
+    bar = f"color=c=0x38bdf8:s={W}x16:r=30:d={d}"
+    fg = (f"[0:v][2:v]overlay=x='-w+w*t/{duration:.3f}':y={H}-16[v1];"
+          f"[v1]subtitles=captions.ass[v]")
+    backgrounds = [
+        f"gradients=s={W}x{H}:c0=0x0f172a:c1=0x1e3a8a:x0=0:y0=0:x1={W}:y1={H}:speed=0.03:r=30:d={d}",
+        f"color=c=0x0f172a:s={W}x{H}:r=30:d={d}",
+    ]
+    for i, bg in enumerate(backgrounds):
+        try:
+            run_ffmpeg(tmp, duration)
+            return
+        except subprocess.CalledProcessError:
+            if i == len(backgrounds) - 1:
+                raise
 
 
 def main(job_id):
