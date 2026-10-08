@@ -5,8 +5,12 @@ import tempfile
 
 import requests
 
-SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
-KEY = os.environ["SUPABASE_SERVICE_KEY"]
+SUPABASE_URL = os.environ["SUPABASE_URL"].strip().rstrip("/")
+KEY = os.environ["SUPABASE_SERVICE_KEY"].strip()
+if SUPABASE_URL.startswith("eyJ") or not KEY.startswith("eyJ"):
+    sys.exit("SUPABASE_URL and SUPABASE_SERVICE_KEY look wrong or swapped; re-save both secrets")
+if not SUPABASE_URL.startswith("http"):
+    SUPABASE_URL = "https://" + SUPABASE_URL
 BUCKET = os.environ.get("VIDEO_BUCKET", "video")
 W = int(os.environ.get("VIDEO_W", "1920"))
 H = int(os.environ.get("VIDEO_H", "1080"))
